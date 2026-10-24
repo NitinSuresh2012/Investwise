@@ -1878,7 +1878,19 @@ themeBtn.addEventListener("click", () => {
   themeBtn.setAttribute("aria-pressed", isLight ? "true" : "false");
 });
 
+
+function setupMarketBrief() {
+  document.querySelectorAll('[data-brief-filter]').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('[data-brief-filter]').forEach(item => item.classList.toggle('active', item === button));
+      const topic = button.dataset.briefFilter;
+      document.querySelectorAll('[data-brief-topic]').forEach(card => { card.hidden = topic !== 'all' && card.dataset.briefTopic !== topic; });
+    });
+  });
+}
+
 setupTabs();
+setupMarketBrief();
 document.querySelectorAll("[data-tab-link]").forEach(link => {
   link.addEventListener("click", () => {
     document.querySelectorAll(".sidebar-link").forEach(item => item.classList.toggle("active", item === link));
