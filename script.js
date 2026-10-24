@@ -1880,7 +1880,10 @@ themeBtn.addEventListener("click", () => {
 
 setupTabs();
 document.querySelectorAll("[data-tab-link]").forEach(link => {
-  link.addEventListener("click", () => document.querySelector(`.tabs button[data-tab="${link.dataset.tabLink}"]`)?.click());
+  link.addEventListener("click", () => {
+    document.querySelectorAll(".sidebar-link").forEach(item => item.classList.toggle("active", item === link));
+    document.querySelector(`.tabs button[data-tab="${link.dataset.tabLink}"]`)?.click();
+  });
 });
 renderCards();
 setupLessons();
