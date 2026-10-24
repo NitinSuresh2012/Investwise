@@ -683,6 +683,117 @@ let portfolioHoldings = { QQQ: 4500, VOO: 6000, GOOGL: 3250, NVDA: 2750, MSFT: 2
 let selectedPortfolioSymbol = "NVDA";
 let selectedSimSymbol = "VTI";
 
+const progressStorageKey = "investwise-progress-v1";
+const quizQuestions = [
+  {
+    id: "needs",
+    question: "What should a beginner budget pay for first?",
+    options: ["Needs, savings, then wants", "Wants, then leftover savings", "Only investing", "Only subscriptions"],
+    answer: "Needs, savings, then wants",
+    explain: "Needs come first, then savings, then fun spending if the budget has room."
+  },
+  {
+    id: "emergency",
+    question: "Where should emergency fund money usually stay?",
+    options: ["Cash or savings", "One risky stock", "Options trading", "Crypto only"],
+    answer: "Cash or savings",
+    explain: "Emergency money needs to be available quickly, so it should not depend on the market."
+  },
+  {
+    id: "stock",
+    question: "What is a stock?",
+    options: ["A small ownership piece of a company", "A bank savings account", "A guaranteed profit", "A monthly bill"],
+    answer: "A small ownership piece of a company",
+    explain: "A stock represents ownership in a business, and its price can rise or fall."
+  },
+  {
+    id: "etf",
+    question: "Why can an ETF be easier for beginners?",
+    options: ["It spreads money across many investments", "It removes all risk", "It always beats every stock", "It is the same as cash"],
+    answer: "It spreads money across many investments",
+    explain: "An ETF can hold many companies, which lowers dependence on one business."
+  },
+  {
+    id: "diversification",
+    question: "What does diversification mean?",
+    options: ["Spreading money across different investments", "Putting everything in one stock", "Trading every day", "Ignoring risk"],
+    answer: "Spreading money across different investments",
+    explain: "Diversification helps a portfolio survive surprises from one company or sector."
+  },
+  {
+    id: "compound",
+    question: "What makes compound growth powerful?",
+    options: ["Gains can start earning gains", "Prices never go down", "Debt disappears", "Taxes stop existing"],
+    answer: "Gains can start earning gains",
+    explain: "With time, earlier growth can create more growth on top of itself."
+  }
+];
+
+let progressData = {
+  lessonsViewed: [],
+  quizAnswers: {},
+  practiceActions: 0,
+  lastSaved: "",
+  visits: 1
+};
+
+function loadSavedData() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(progressStorageKey) || "{}");
+    if (saved.cash !== undefined) cash = saved.cash;
+    if (saved.holdings) holdings = saved.holdings;
+    if (saved.budget) budget = saved.budget;
+    if (saved.savings) savings = saved.savings;
+    if (saved.portfolioBudget) portfolioBudget = saved.portfolioBudget;
+    if (saved.portfolioCash !== undefined) portfolioCash = saved.portfolioCash;
+    if (saved.portfolioHoldings) portfolioHoldings = saved.portfolioHoldings;
+    if (saved.selectedPortfolioSymbol) selectedPortfolioSymbol = saved.selectedPortfolioSymbol;
+    if (saved.selectedSimSymbol) selectedSimSymbol = saved.selectedSimSymbol;
+    if (saved.progressData) {
+      progressData = {
+        ...progressData,
+        ...saved.progressData,
+        lessonsViewed: Array.isArray(saved.progressData.lessonsViewed) ? saved.progressData.lessonsViewed : [],
+        quizAnswers: saved.progressData.quizAnswers || {}
+      };
+    }
+    progressData.visits = Math.max(1, Number(progressData.visits || 0) + 1);
+  } catch {
+    progressData.visits = 1;
+  }
+}
+
+function saveAppData(countAction = false) {
+  if (countAction) progressData.practiceActions += 1;
+  progressData.lastSaved = new Date().toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  try {
+    localStorage.setItem(progressStorageKey, JSON.stringify({
+      cash,
+      holdings,
+      budget,
+      savings,
+      portfolioBudget,
+      portfolioCash,
+      portfolioHoldings,
+      selectedPortfolioSymbol,
+      selectedSimSymbol,
+      progressData
+    }));
+  } catch {
+    return;
+  }
+  renderProgress();
+}
+
+function markLessonViewed(title) {
+  if (!progressData.lessonsViewed.includes(title)) {
+    progressData.lessonsViewed.push(title);
+    saveAppData();
+  }
+}
+
+loadSavedData();
+
 const money = value => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
 const moneyExact = value => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
 const pct = value => new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 0 }).format(value);
@@ -692,12 +803,111 @@ const simAssetBySymbol = symbol => simulatorAssets.find(asset => asset.symbol ==
 function setupTabs() {
   document.querySelectorAll(".tabs button").forEach(button => {
     button.addEventListener("click", () => {
-      document.querySelectorAll(".tabs button").forEach(item => item.classList.remove("active"));
+      document.querySelectorAll(".tabs button").forEach(item => {
+        item.classList.remove("active");
+        item.setAttribute("aria-selected", "false");
+      });
       document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("active"));
       button.classList.add("active");
+      button.setAttribute("aria-selected", "true");
       document.getElementById(button.dataset.tab).classList.add("active");
+      document.getElementById(button.dataset.tab).scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
+}
+
+function renderProgress() {
+  const panel = document.getElementById("progress");
+  if (!panel) return;
+
+  const lessonTotal = document.querySelectorAll("#learn li").length || 1;
+  const lessonsDone = Math.min(progressData.lessonsViewed.length, lessonTotal);
+  const correctQuizIds = quizQuestions
+    .filter(question => progressData.quizAnswers[question.id]?.correct)
+    .map(question => question.id);
+  const quizDone = correctQuizIds.length;
+  const answeredCount = quizQuestions.filter(question => progressData.quizAnswers[question.id]).length;
+  const quizComplete = answeredCount === quizQuestions.length;
+  const scoreOutOf4 = quizComplete ? Math.round((quizDone / quizQuestions.length) * 4) : null;
+  const letterGrade = quizComplete ? letterGradeForScore(scoreOutOf4) : null;
+  const completion = Math.round((answeredCount / quizQuestions.length) * 100);
+  const xp = lessonsDone * 25 + quizDone * 60 + progressData.practiceActions * 5;
+  const level = Math.max(1, Math.floor(xp / 140) + 1);
+  const earnedBadges = [
+    ["Lesson Starter", lessonsDone >= 1, "Opened your first lesson"],
+    ["Quiz Climber", quizDone >= 2, "Answered two essentials"],
+    ["ETF Ready", correctQuizIds.includes("etf"), "Understands ETF basics"],
+    ["Risk Aware", correctQuizIds.includes("diversification"), "Knows diversification"],
+    ["Budget Builder", progressData.practiceActions >= 4, "Practiced with app tools"],
+    ["Money Scholar", quizDone === quizQuestions.length, "Mastered all essentials"]
+  ];
+
+  document.getElementById("progressLevel").textContent = quizComplete ? `Grade ${letterGrade}` : "Quiz not finished";
+  document.getElementById("progressMessage").textContent = quizComplete
+    ? `You scored ${scoreOutOf4}/4 with ${letterGrade === "A" || letterGrade === "F" ? "an" : "a"} ${letterGrade}. Correct answers: ${quizDone}/${quizQuestions.length}.`
+    : `Answer ${quizQuestions.length - answeredCount} more question${quizQuestions.length - answeredCount === 1 ? "" : "s"} to unlock your score out of 4 and letter grade.`;
+  document.getElementById("progressXp").textContent = quizComplete ? `${scoreOutOf4}/4` : `${answeredCount}/6`;
+  document.getElementById("progressSaved").textContent = progressData.lastSaved ? `Last saved ${progressData.lastSaved}` : "Saved in this browser";
+  document.getElementById("progressLessons").textContent = `${lessonsDone}/${lessonTotal}`;
+  document.getElementById("progressQuizzes").textContent = `${quizDone}/${quizQuestions.length}`;
+  document.getElementById("progressActions").textContent = progressData.practiceActions;
+  document.getElementById("progressPercent").textContent = `${completion}%`;
+  document.getElementById("progressBar").style.width = `${completion}%`;
+  document.getElementById("quizSummary").textContent = quizComplete ? `${scoreOutOf4}/4 - ${letterGrade}` : `${answeredCount}/6 answered`;
+  document.getElementById("badgeCount").textContent = `${earnedBadges.filter(([, earned]) => earned).length} earned`;
+
+  document.getElementById("savedDataGrid").innerHTML = [
+    ["Questions answered", `${answeredCount}/${quizQuestions.length}`],
+    ["Correct answers", `${quizDone}/${quizQuestions.length}`],
+    ["Score", quizComplete ? `${scoreOutOf4}/4` : "Finish quiz"],
+    ["Letter grade", quizComplete ? letterGrade : "Locked"],
+    ["Lessons viewed", `${lessonsDone}/${lessonTotal}`],
+    ["Practice actions", progressData.practiceActions]
+  ].map(([label, value]) => `<span><b>${value}</b>${label}</span>`).join("");
+
+  document.getElementById("badgeGrid").innerHTML = earnedBadges.map(([name, earned, detail]) => `
+    <span class="${earned ? "earned" : ""}"><b>${earned ? name : "Locked"}</b>${earned ? detail : name}</span>
+  `).join("");
+
+  document.getElementById("quizList").innerHTML = quizQuestions.map(question => {
+    const saved = progressData.quizAnswers[question.id];
+    return `
+      <div class="quiz-item">
+        <h5>${question.question}</h5>
+        <div class="quiz-options">
+          ${question.options.map((option, index) => {
+            const isSelected = saved?.selected === option;
+            const className = isSelected ? (saved.correct ? "correct" : "wrong") : "";
+            return `<button class="${className}" data-quiz="${question.id}" data-option="${index}" type="button">${option}</button>`;
+          }).join("")}
+        </div>
+        <p class="quiz-feedback">${saved ? (saved.correct ? `Correct. ${question.explain}` : `Not quite. ${question.explain}`) : "Choose an answer to save your progress."}</p>
+      </div>
+    `;
+  }).join("");
+
+  document.querySelectorAll("[data-quiz]").forEach(button => {
+    button.addEventListener("click", () => answerQuiz(button.dataset.quiz, Number(button.dataset.option)));
+  });
+}
+
+function answerQuiz(questionId, optionIndex) {
+  const question = quizQuestions.find(item => item.id === questionId);
+  if (!question) return;
+  const selected = question.options[optionIndex];
+  progressData.quizAnswers[questionId] = {
+    selected,
+    correct: selected === question.answer
+  };
+  saveAppData();
+}
+
+function letterGradeForScore(score) {
+  if (score >= 4) return "A";
+  if (score >= 3) return "B";
+  if (score >= 2) return "C";
+  if (score >= 1) return "D";
+  return "F";
 }
 
 function renderCards() {
@@ -786,6 +996,7 @@ function renderSimulator() {
     cash = +(cash - asset.price).toFixed(2);
     holdings[asset.symbol] = (holdings[asset.symbol] || 0) + 1;
     updatePortfolio();
+    saveAppData(true);
   });
   updatePortfolio();
 }
@@ -814,11 +1025,12 @@ function updatePortfolio() {
   document.querySelectorAll("[data-sell]").forEach(button => {
     button.addEventListener("click", () => {
       const symbol = button.dataset.sell;
-      const asset = assetBySymbol(symbol);
+      const asset = simAssetBySymbol(symbol) || assetBySymbol(symbol);
       cash = +(cash + asset.price).toFixed(2);
       holdings[symbol] -= 1;
       if (holdings[symbol] <= 0) delete holdings[symbol];
       updatePortfolio();
+      saveAppData(true);
     });
   });
 }
@@ -927,6 +1139,7 @@ function renderPortfolioBuilder() {
       portfolioHoldings[symbol] = portfolioHoldings[symbol] * scale;
     });
     updateResearchPortfolio();
+    saveAppData(true);
   });
   document.getElementById("portfolioInvestBtn").addEventListener("click", () => {
     const amount = Math.max(25, Number(amountInput.value) || 25);
@@ -935,6 +1148,7 @@ function renderPortfolioBuilder() {
     portfolioHoldings[selectedPortfolioSymbol] = (portfolioHoldings[selectedPortfolioSymbol] || 0) + investAmount;
     portfolioCash = +(portfolioCash - investAmount).toFixed(2);
     updateResearchPortfolio();
+    saveAppData(true);
   });
   selectPortfolioAsset(selectedPortfolioSymbol);
   updateResearchPortfolio();
@@ -985,6 +1199,7 @@ function selectPortfolioAsset(symbol) {
   document.getElementById("portfolioSearch").value = `${asset.symbol} - ${asset.name}`;
   document.getElementById("portfolioResults").classList.remove("open");
   document.getElementById("portfolioSelected").innerHTML = `<b>${asset.symbol}</b> ${asset.name} - ${asset.sector} - ${money(asset.price)}<br>${asset.insight}`;
+  saveAppData();
 }
 
 function updateResearchPortfolio() {
@@ -1042,6 +1257,7 @@ function updateResearchPortfolio() {
       portfolioCash += portfolioHoldings[symbol] || 0;
       delete portfolioHoldings[symbol];
       updateResearchPortfolio();
+      saveAppData(true);
     });
   });
 }
@@ -1117,6 +1333,7 @@ function renderBudget() {
     input.addEventListener("input", () => {
       budget[input.dataset.budget] = Number(input.value);
       updateBudget();
+      saveAppData(true);
     });
   });
   updateBudget();
@@ -1153,6 +1370,7 @@ function renderSavings() {
       savings[input.dataset.saving] = Number(input.value);
       document.querySelectorAll("[data-goal-preset]").forEach(button => button.classList.toggle("active", Number(button.dataset.goalPreset) === savings.goal));
       updateSavings();
+      saveAppData(true);
     });
   });
 
@@ -1164,6 +1382,7 @@ function renderSavings() {
       document.querySelectorAll("[data-goal-preset]").forEach(item => item.classList.remove("active"));
       button.classList.add("active");
       updateSavings();
+      saveAppData(true);
     });
   });
 
@@ -1212,194 +1431,6 @@ function projectSavings(monthCount) {
     balance = balance * (1 + monthlyRate) + savings.monthly;
   }
   return balance;
-}
-
-function setupCoach() {
-  const topics = {
-    etf: {
-      words: ["etf", "voo", "spy", "vti", "smh", "qqq", "fund", "index fund"],
-      label: "ETF basics",
-      answer: "An ETF is a basket of investments you buy with one ticker. It can hold many companies at once, which helps beginners avoid depending on only one stock.",
-      next: "Compare one ETF, like VOO or VTI, against one single stock and notice how much broader the ETF is.",
-      plan: ["Use an ETF as the broad example first.", "Check what companies are inside the ETF.", "Compare the ETF's risk with one single stock."]
-    },
-    qqq: {
-      words: ["qqq", "nasdaq"],
-      label: "QQQ and growth stocks",
-      answer: "QQQ is an ETF focused on many large Nasdaq companies. It has a lot of technology and growth exposure, so it can rise fast but also move around more.",
-      next: "Look at QQQ's top holdings and ask whether you are comfortable with a tech-heavy basket."
-    },
-    micron: {
-      words: ["micron", "mu", "memory"],
-      label: "Micron and semiconductors",
-      answer: "Micron makes memory and storage chips used in AI servers, phones, PCs, cars, and data centers. Its business can be cyclical because memory prices move up and down.",
-      next: "Compare Micron with Nvidia: both are chip companies, but they make different parts of the AI hardware stack."
-    },
-    diversification: {
-      words: ["diversification", "diversify", "diversified", "allocation", "allocated", "spread out"],
-      label: "Diversification",
-      answer: "Diversification means spreading money across different investments. If one company has a bad week, the rest of the portfolio can help balance it out.",
-      next: "Check your simulator allocation and see if one stock is too large compared with the rest."
-    },
-    compound: {
-      words: ["compound", "interest", "growth"],
-      label: "Compound growth",
-      answer: "Compound growth means your gains can start earning gains too. The longer money stays invested, the more time it has to build on itself.",
-      next: "Try increasing savings or investing in the budget simulator and watch how net worth growth changes.",
-      plan: ["Start with a small monthly amount.", "Keep the money invested for years, not days.", "Use broad ETFs as the simple example."]
-    },
-    risk: {
-      words: ["risk", "safe", "reward", "lose money", "overvalued", "undervalued", "fair value", "valuation"],
-      label: "Risk and reward",
-      answer: "Risk is the chance an investment loses value or does worse than expected. Reward is the possible gain you hope to earn for taking that risk.",
-      next: "Use ETFs for a steadier beginner example, then compare them with a high-growth single stock.",
-      plan: ["Avoid putting everything in one stock.", "Compare risk score before buying.", "Keep emergency money out of the market."]
-    },
-    budget: {
-      words: ["budget", "saving", "salary", "spending", "rent", "food", "emergency"],
-      label: "Budget planning",
-      answer: "A budget is a plan for where money goes before it disappears. A strong beginner budget covers needs first, saves money, invests only after basics are handled, and leaves some room for fun.",
-      next: "Use the Budget tab and try to keep savings plus investing near 20% or more if the numbers fit.",
-      plan: ["Pay needs first: rent, food, transportation.", "Build a $500-$1,000 starter emergency fund.", "Keep entertainment controlled, but not zero."]
-    },
-    portfolio: {
-      words: ["portfolio", "diversified", "allocation", "holdings", "investing plan"],
-      label: "Portfolio planning",
-      answer: "A beginner portfolio should avoid depending on one company. Broad ETFs can be the foundation, while individual stocks can be smaller learning positions.",
-      next: "In the Simulator tab, compare a one-stock portfolio with a portfolio built around ETFs like VOO, VTI, or QQQ.",
-      plan: ["Use ETFs as the core of the portfolio.", "Keep single stocks smaller than the ETF section.", "Check sector exposure so everything is not just tech."]
-    },
-    stock: {
-      words: ["stock", "company", "shares", "ticker", "buy", "sell", "invest"],
-      label: "Stock research",
-      answer: "A stock is a small ownership piece of one company. Beginners should learn what the business does, how it makes money, what could go wrong, and how expensive expectations already are.",
-      next: "Open a stock card, read the plain-English business summary, then compare it with an ETF to see the difference between one company and a basket.",
-      plan: ["Understand the business before the price chart.", "List one reason investors like it and one risk.", "Keep single-stock ideas smaller than diversified ETF examples."]
-    }
-  };
-  Object.values(topics).forEach(topic => {
-    topic.plan ||= ["Learn the idea first.", "Practice in the simulator.", "Keep decisions simple and diversified."];
-  });
-
-  const topicList = Object.values(topics);
-  const knownSymbols = new Set([
-    ...assets.map(asset => asset.symbol),
-    ...topStocks.map(stock => stock.symbol),
-    ...talkedAboutWatchlist.map(([symbol]) => symbol),
-    "SPX",
-    "VIX"
-  ]);
-
-  function findTopic(question) {
-    const scored = topicList.map(topic => ({
-      topic,
-      score: topic.words.reduce((total, word) => total + (question.includes(word) ? 1 : 0), 0)
-    })).sort((a, b) => b.score - a.score);
-    return scored[0].score > 0 ? scored[0].topic : topics.portfolio;
-  }
-
-  function extractTickers(rawQuestion) {
-    const matches = rawQuestion.toUpperCase().match(/\b[A-Z]{1,5}\b/g) || [];
-    return [...new Set(matches.filter(symbol => knownSymbols.has(symbol)))].slice(0, 4);
-  }
-
-  function getSymbolName(symbol) {
-    return assetBySymbol(symbol)?.name
-      || topStocks.find(stock => stock.symbol === symbol)?.name
-      || {
-        SPX: "S&P 500 Index",
-        VIX: "CBOE Volatility Index",
-        SMH: "VanEck Semiconductor ETF",
-        QQQ: "Invesco QQQ",
-        SPY: "SPDR S&P 500 ETF"
-      }[symbol]
-      || symbol;
-  }
-
-  function buildTickerCard(symbol) {
-    const watch = talkedAboutWatchlist.find(([watchSymbol]) => watchSymbol === symbol);
-    const asset = assetBySymbol(symbol);
-    const stock = topStocks.find(item => item.symbol === symbol);
-    const quote = quoteSnapshot.prices[symbol];
-    const detail = companyDetails[symbol] || (stock ? defaultDetail(stock) : null);
-    const name = getSymbolName(symbol);
-    const priceText = quote
-      ? `${watchPriceLabel(symbol, quote.current)} ${quote.label || "quote"}`
-      : (asset?.price ? `${moneyExact(asset.price)} simulator price` : "price snapshot not loaded");
-    const insight = watch?.[2] || asset?.insight || detail?.[0] || "Use this ticker as a research example, then compare it with a diversified ETF.";
-    const risk = watch?.[3] || detail?.[2] || "Check concentration, valuation, competition, and whether expectations are already high.";
-
-    return `
-      <div class="coach-cardlet">
-        <strong>${escapeHtml(symbol)} - ${escapeHtml(name)}</strong>
-        <small class="price-line">${escapeHtml(priceText)}</small>
-        <small>${escapeHtml(insight)}</small>
-        <small><b>Risk check:</b> ${escapeHtml(risk)}</small>
-      </div>
-    `;
-  }
-
-  function buildPlan(topic, tickers, question) {
-    if (question.includes("budget") || question.includes("saving") || question.includes("salary") || question.includes("spending")) {
-      return ["Cover needs first: rent, food, transportation, and basic bills.", "Build a starter emergency fund before taking big investing risk.", "Use the simulator to test saving plus investing at 15%-25% of income."];
-    }
-    if (tickers.length) {
-      return ["Start with what each company or ETF actually does.", "Compare the ticker with SPY or VOO so you have broad-market context.", "Limit single-stock exposure in the simulator and watch how diversification changes the risk score."];
-    }
-    return topic.plan;
-  }
-
-  function buildTryNext(topic, tickers) {
-    if (tickers.length) {
-      return `Search ${tickers[0]} in the Simulator, add a small practice allocation, then compare it with SPY, QQQ, or VTI.`;
-    }
-    if (topic === topics.budget) return "Open the Budget tab and move savings/investing up or down to see how the financial score changes.";
-    if (topic === topics.portfolio) return "Open the Portfolio tab, enter a practice budget, then build one ETF-heavy portfolio and one stock-heavy portfolio.";
-    return topic.next;
-  }
-
-  function respond() {
-    const rawQuestion = document.getElementById("coachQuestion").value.trim();
-    const question = rawQuestion.toLowerCase();
-    const topic = findTopic(question);
-    const tickers = extractTickers(rawQuestion);
-    const plan = buildPlan(topic, tickers, question);
-    const tickerCards = tickers.map(buildTickerCard).join("");
-    const summary = rawQuestion
-      ? `You are asking about: "${rawQuestion}"`
-      : "You are asking for a beginner investing explanation and a simple next step.";
-    const analysis = tickers.length
-      ? `I detected ${tickers.join(", ")} and treated this as a ${topic.label.toLowerCase()} question. I will explain the idea, then connect it to risk and diversification.`
-      : `This looks like a ${topic.label.toLowerCase()} question. I will keep it beginner-friendly and focus on learning before any buy/sell decision.`;
-
-    document.getElementById("coachAnswer").innerHTML = `
-      <div class="coach-response">
-        <div class="coach-agent-head">
-          <span class="coach-avatar">AI</span>
-          <div><h4>FinCoach</h4><p>I analyzed your question, pulled out the main topic, and built a clear learning plan.</p></div>
-        </div>
-        <div><b>I understood</b><p>${escapeHtml(summary)}</p></div>
-        <div><b>Question analysis</b><p>${escapeHtml(analysis)}</p></div>
-        <div><b>Simple answer</b><p>${topic.answer}</p></div>
-        ${tickerCards ? `<div><b>Ticker context</b><div class="coach-grid">${tickerCards}</div></div>` : ""}
-        <div><b>Ideas and plan</b><div class="coach-plan">${plan.map(step => `<span>${escapeHtml(step)}</span>`).join("")}</div></div>
-        <div><b>Try this in Investopedia</b><p>${escapeHtml(buildTryNext(topic, tickers))}</p></div>
-        <div><b>Risk reminder</b><p>A strong beginner approach is usually to keep emergency money separate, use diversified ETFs as the core example, and treat single stocks as smaller learning positions in the simulator.</p></div>
-        <div><span class="disclaimer">Educational purposes only.</span></div>
-      </div>
-    `;
-  }
-
-  document.getElementById("coachBtn").addEventListener("click", respond);
-  document.getElementById("coachQuestion").addEventListener("keydown", event => {
-    if (event.key === "Enter") respond();
-  });
-  document.querySelectorAll("[data-coach-prompt]").forEach(button => {
-    button.addEventListener("click", () => {
-      document.getElementById("coachQuestion").value = button.dataset.coachPrompt;
-      respond();
-    });
-  });
 }
 
 function escapeHtml(value) {
@@ -1504,13 +1535,14 @@ function setupLessons() {
 }
 
 function openLessonDetail(title) {
+  markLessonViewed(title);
   const lesson = lessonDetails[title] || defaultLessonDetail(title);
   document.getElementById("stockDetail").innerHTML = `
     <div class="detail-hero">
       <div class="logo-wrap"><span class="logo-fallback" style="display:block">LE</span></div>
       <div>
         <h3>${title}</h3>
-        <p>Beginner lesson • Investopedia</p>
+        <p>Beginner lesson • Investwise</p>
       </div>
     </div>
     <div class="detail-grid">
@@ -1834,19 +1866,29 @@ function advanceLogo(image, symbol) {
   image.nextElementSibling.classList.add("visible");
 }
 
-document.getElementById("themeBtn").addEventListener("click", () => {
-  document.body.classList.toggle("light");
-  document.getElementById("themeBtn").textContent = document.body.classList.contains("light") ? "☀" : "☾";
+const savedTheme = localStorage.getItem("investwise-theme");
+if (savedTheme === "light") document.body.classList.add("light");
+const themeBtn = document.getElementById("themeBtn");
+themeBtn.textContent = document.body.classList.contains("light") ? "☀" : "☾";
+themeBtn.setAttribute("aria-pressed", document.body.classList.contains("light") ? "true" : "false");
+themeBtn.addEventListener("click", () => {
+  const isLight = document.body.classList.toggle("light");
+  localStorage.setItem("investwise-theme", isLight ? "light" : "dark");
+  themeBtn.textContent = isLight ? "☀" : "☾";
+  themeBtn.setAttribute("aria-pressed", isLight ? "true" : "false");
 });
 
 setupTabs();
+document.querySelectorAll("[data-tab-link]").forEach(link => {
+  link.addEventListener("click", () => document.querySelector(`.tabs button[data-tab="${link.dataset.tabLink}"]`)?.click());
+});
 renderCards();
 setupLessons();
 renderSimulator();
 renderPortfolioBuilder();
 renderBudget();
 renderSavings();
-setupCoach();
 renderTopStocks();
 renderPlatforms();
+saveAppData();
 hydrateMarketData();

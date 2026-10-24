@@ -3,19 +3,22 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Investopedia</title>
+    <meta name="description" content="Investwise is a beginner-friendly investing education and simulation app. Learn money basics, practice portfolios, and understand risk without using real money." />
+    <meta name="theme-color" content="#07100c" />
+    <title>Investwise | Learn money. Practice investing.</title>
     <link rel="icon" href="./favicon.ico?v=2" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png?v=2" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=2" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="app">
       <header class="topbar">
         <div class="brand">
           <div class="logo">↗</div>
           <div>
-            <p>Investopedia</p>
+            <p>Investwise</p>
             <h1>Learn money. Practice investing.</h1>
           </div>
         </div>
@@ -42,20 +45,29 @@
         </div>
       </section>
 
+      <section class="dashboard-overview" aria-labelledby="overview-title">
+        <div class="dashboard-toolbar"><div><p class="eyebrow">Practice dashboard</p><h2 id="overview-title">Your money snapshot</h2></div><div class="dashboard-actions"><span class="period-chip">This month⌄</span><button class="secondary-action" type="button" data-tab-link="portfolio">Manage widgets</button><button class="primary-action" type="button" data-tab-link="sim">＋ Practice trade</button></div></div>
+        <div class="kpi-grid"><article class="kpi-card violet"><span>Practice balance</span><strong>$10,000</strong><small><b>↗ 8.4%</b> simulated this month</small></article><article class="kpi-card orange"><span>Invested</span><strong>$6,750</strong><small><b>↗ 12.8%</b> across 8 holdings</small></article><article class="kpi-card cyan"><span>Available cash</span><strong>$3,250</strong><small><b>↗ 4.1%</b> ready to allocate</small></article><article class="kpi-card green"><span>Learning progress</span><strong>62%</strong><small><b>↗ 3 lessons</b> completed this month</small></article></div>
+        <div class="overview-grid"><article class="overview-card portfolio-overview"><div class="overview-heading"><div><span class="eyebrow">Portfolio</span><h3>Practice portfolio</h3></div><button class="more-button" type="button" aria-label="More portfolio options">⋮</button></div><div class="portfolio-total"><strong>$10,000.00</strong><span class="positive">↗ 8.4%</span><small>from last month</small></div><div class="portfolio-breakdown"><div><span>Invested</span><b>$6,750</b></div><div><span>Return</span><b class="positive">+$540.86</b></div></div><div class="mini-chart positive-chart" aria-label="Simulated portfolio trend"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
+        <article class="overview-card gainers-overview"><div class="overview-heading"><div><span class="eyebrow">Market study</span><h3>Top practice picks</h3></div><button class="more-button" type="button" aria-label="Open top practice picks">↗</button></div><div class="gainer-list"><div><span class="company-dot purple">V</span><b>VOO</b><small>Broad market ETF</small><strong>+12.4%</strong></div><div><span class="company-dot blue">Q</span><b>QQQ</b><small>Technology ETF</small><strong>+9.8%</strong></div><div><span class="company-dot mint">A</span><b>AAPL</b><small>Large-cap stock</small><strong>+7.2%</strong></div></div></article>
+        <article class="overview-card watch-overview"><div class="overview-heading"><div><span class="eyebrow">Watchlist</span><h3>Companies to learn</h3></div><button class="more-button" type="button" aria-label="Add a company">＋</button></div><div class="watch-row"><span class="company-dot dark">N</span><div><b>NVDA</b><small>Semiconductors</small></div><strong>$142.63 <em>+3.4%</em></strong></div><div class="watch-row"><span class="company-dot green">MS</span><div><b>MSFT</b><small>Software</small></div><strong>$487.21 <em>+1.8%</em></strong></div><div class="watch-row"><span class="company-dot orange">AM</span><div><b>AMZN</b><small>Consumer & cloud</small></div><strong>$221.04 <em class="down">−1.2%</em></strong></div></article></div>
+        <div class="overview-grid lower-overview"><article class="overview-card quarterly-overview"><div class="overview-heading"><div><span class="eyebrow">Performance practice</span><h3>Quarterly gains</h3></div><span class="period-chip">2026</span></div><div class="bar-chart"><i style="height:48%"><b>+8%</b></i><i style="height:74%"><b>+15%</b></i><i class="negative" style="height:30%"><b>−4%</b></i><i style="height:90%"><b>+19%</b></i><i style="height:62%"><b>+12%</b></i></div><div class="chart-labels"><span>Q1</span><span>Q2</span><span>Q3</span><span>Q4</span><span>Now</span></div></article><article class="overview-card insight-overview"><span class="eyebrow">FinCoach insight</span><h3>Your practice portfolio is becoming more diversified.</h3><p>ETFs make up 58% of your simulated holdings. Consider learning how cash reserves can reduce risk before adding another single stock.</p><button class="insight-link" type="button" data-tab-link="etfs">Explore diversification ↗</button></article></div>
+      </section>
       <nav class="tabs" aria-label="Sections">
         <button class="active" data-tab="learn">Learn</button>
         <button data-tab="etfs">ETFs</button>
         <button data-tab="sim">Simulator</button>
         <button data-tab="portfolio">Portfolio</button>
-        <button data-tab="budget">Budget</button>
-        <button data-tab="savings">Savings</button>
+        <button data-tab="progress">Quiz</button>
+        <button data-tab="tracker">Tracker</button>
         <button data-tab="topstocks">Top 100</button>
         <button data-tab="platforms">Platforms</button>
-        <button data-tab="coach">FinCoach</button>
+        <button data-tab="updates">Updates</button>
+        <button data-tab="contact">Contact</button>
         <button data-tab="watch">Watchlist</button>
       </nav>
 
-      <main>
+      <main id="main-content">
         <section id="learn" class="panel active">
           <div class="section-title">
             <p>Beginner curriculum</p>
@@ -208,11 +220,57 @@
           </article>
         </section>
 
-        <section id="budget" class="panel">
+        <section id="progress" class="panel">
           <div class="section-title">
-            <p>$4,000 monthly salary</p>
-            <h3>Budget decisions change your score</h3>
+            <p>Saved quiz data</p>
+            <h3>Answer the essentials and get your grade</h3>
           </div>
+          <article class="progress-hero card">
+            <div>
+              <span class="progress-kicker">Investwise Quiz</span>
+              <h4 id="progressLevel">Quiz not finished</h4>
+              <p id="progressMessage">Finish all 6 questions to unlock your score out of 4 and American letter grade.</p>
+            </div>
+            <div class="progress-score">
+              <b id="progressXp">--/4</b>
+              <span id="progressSaved">Saved in this browser</span>
+            </div>
+          </article>
+          <div class="grid three progress-stats">
+            <article class="card score-card"><span>Lessons viewed</span><b id="progressLessons">0/10</b><p>Open lessons in Learn to save them here.</p></article>
+            <article class="card score-card"><span>Questions correct</span><b id="progressQuizzes">0/6</b><p>Correct answers stay saved after refresh.</p></article>
+            <article class="card score-card"><span>Practice actions</span><b id="progressActions">0</b><p>Simulator, Tracker, and portfolio changes count.</p></article>
+          </div>
+          <div class="grid two">
+            <article class="card">
+              <div class="card-head"><h4>Quiz completion</h4><span id="progressPercent">0%</span></div>
+              <div class="progress big-progress"><i id="progressBar"></i></div>
+              <div class="saved-data-grid" id="savedDataGrid"></div>
+            </article>
+            <article class="card">
+              <div class="card-head"><h4>Badges</h4><span id="badgeCount">0 earned</span></div>
+              <div class="badge-grid" id="badgeGrid"></div>
+            </article>
+          </div>
+          <article class="card quiz-card">
+            <div class="card-head"><h4>Essential questions</h4><span id="quizSummary">0 correct</span></div>
+            <div class="quiz-list" id="quizList"></div>
+          </article>
+        </section>
+
+        <section id="tracker" class="panel">
+          <div class="section-title">
+            <p>Budget and savings</p>
+            <h3>Track money decisions in one place</h3>
+          </div>
+          <article class="tracker-intro card">
+            <div>
+              <span class="progress-kicker">$4,000 monthly salary</span>
+              <h4>Tracker</h4>
+              <p>Adjust spending, savings, and goals to see how your money plan changes over time.</p>
+            </div>
+            <span>Saved in this browser</span>
+          </article>
           <div class="grid two">
             <article class="card budget-controls"></article>
             <article class="card">
@@ -223,13 +281,6 @@
               </div>
               <p class="hint">A healthy beginner target is saving and investing at least 20% while keeping flexible spending under control.</p>
             </article>
-          </div>
-        </section>
-
-        <section id="savings" class="panel">
-          <div class="section-title">
-            <p>Savings simulator</p>
-            <h3>Build an emergency fund and goal plan</h3>
           </div>
           <div class="grid two">
             <article class="card savings-controls">
@@ -253,23 +304,69 @@
           <div class="grid three saving-plan"></div>
         </section>
 
-        <section id="coach" class="panel">
+        <section id="contact" class="panel">
           <div class="section-title">
-            <p>FinCoach</p>
-            <h3>Ask beginner questions without the pressure</h3>
+            <p>Contact</p>
+            <h3>Hi, I'm Nitin!</h3>
           </div>
-          <article class="card coach">
-            <div class="trade">
-              <input id="coachQuestion" value="What is an ETF?" />
-              <button id="coachBtn">Ask</button>
+          <article class="card contact-card">
+            <div class="contact-hero">
+              <img src="./assets/brand/nitin-photo.jpeg" alt="Nitin Suresh" />
+              <div class="contact-copy">
+                <div class="card-head">
+                  <div>
+                    <h4>Welcome to my website!</h4>
+                    <p>I'm a student developer who loves turning ideas into real projects. I always try to learn a new skill, whether it's a cool tool, a better way to build something, or just something totally new. I like experimenting with tech, building websites and apps, and figuring out how to solve real problems.</p>
+                  </div>
+                  <span>Beta</span>
+                </div>
+                <p class="contact-intro">Thanks for visiting, and I hope you enjoy exploring my projects!</p>
+              </div>
             </div>
-            <div class="coach-prompts" aria-label="FinCoach example questions">
-              <button type="button" data-coach-prompt="Build me a simple beginner portfolio plan">Beginner portfolio</button>
-              <button type="button" data-coach-prompt="Explain QQQ vs SPY in simple words">QQQ vs SPY</button>
-              <button type="button" data-coach-prompt="How should I budget my money each month?">Budget plan</button>
-              <button type="button" data-coach-prompt="Analyze NVDA risk for learning">Analyze NVDA</button>
+            <div class="contact-grid">
+              <div>
+                <b>Basketball</b>
+                <p>When I'm not coding, you'll probably find me playing basketball with friends or working on my game.</p>
+              </div>
+              <div>
+                <b>Video games</b>
+                <p>I've loved video games since I was a kid. They made me think logically, and this made me understand how games and technology worked, which guided me to start my own projects.</p>
+              </div>
+              <div>
+                <b>Beta website</b>
+                <p>This website is currently in Beta. I'm continuously updating it with new projects, features, and improvements, so check back often to see what's new.</p>
+              </div>
+              <div>
+                <b>Let's connect</b>
+                <p>If you have an idea, a suggestion, want to collaborate, or just want to say hi, I'd love to hear from you.</p>
+              </div>
             </div>
-            <div id="coachAnswer" class="answer">Ask FinCoach about ETFs, stocks, budgeting, risk, or a ticker like NVDA. It will summarize your question, explain the idea, and give a simple learning plan. Educational purposes only.</div>
+            <div class="contact-links">
+              <a href="mailto:diabalicalbee2012@gmail.com">Email me</a>
+              <a href="https://github.com/NitinSuresh2012/investwise" target="_blank" rel="noreferrer">GitHub project</a>
+              <a href="https://github.com/NitinSuresh2012" target="_blank" rel="noreferrer">GitHub profile</a>
+            </div>
+            <div class="contact-details">
+              <span>Email: diabalicalbee2012@gmail.com</span>
+            </div>
+          </article>
+        </section>
+
+        <section id="updates" class="panel">
+          <div class="section-title">
+            <p>Site updates</p>
+            <h3>What's new in Investwise</h3>
+          </div>
+          <article class="updates-hero card">
+            <div>
+              <span class="progress-kicker">Latest build</span>
+              <h4>Beta improvements are live</h4>
+              <p>Track the newest changes, fixes, and features added while Investwise keeps growing. You can also use this on a phone or iPad.</p>
+            </div>
+            <span>Updated June 2026</span>
+          </article>
+          <article class="updates-showcase card">
+            <img src="./assets/brand/updates-preview.png" alt="Investwise mobile preview" />
           </article>
         </section>
 
@@ -280,7 +377,7 @@
           </div>
           <article class="card platform-intro">
             <h4>Pick the structure before the app</h4>
-            <p>Teens usually need a parent or guardian involved. Some products are teen-owned accounts with parent visibility, some are custodial accounts managed by an adult, and some are parent-approved learning apps. InvestWise is still the practice zone before any real money.</p>
+            <p>Teens usually need a parent or guardian involved. Some products are teen-owned accounts with parent visibility, some are custodial accounts managed by an adult, and some are parent-approved learning apps. Investwise is still the practice zone before any real money.</p>
             <div class="source-stack">
               <a href="https://www.fidelity.com/go/youth-account/overview" target="_blank" rel="noreferrer">Fidelity Youth source</a>
               <a href="https://robinhood.com/us/en/support/articles/open-my-account/" target="_blank" rel="noreferrer">Robinhood source</a>
@@ -308,7 +405,8 @@
           </div>
           <article class="card top-stock-tool">
             <div class="trade">
-              <input id="stockSearch" placeholder="Search by symbol, company, or sector..." />
+              <label class="sr-only" for="stockSearch">Search by symbol, company, or sector</label>
+            <input id="stockSearch" placeholder="Search by symbol, company, or sector..." />
               <select id="sectorFilter" aria-label="Filter by sector"></select>
             </div>
             <div class="source-stack">
